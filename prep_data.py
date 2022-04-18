@@ -78,8 +78,9 @@ def get_rank(plot):
     # examine the top-ranked phrases in the document
     phrase_ranks = []
     for phrase in doc._.phrases:
-        phrase_ranks.append((phrase.rank,phrase.text))
+        phrase_ranks.append(phrase.text)
     
+    # print(phrase_ranks[:10])
     return phrase_ranks[:10]
 
 
@@ -95,32 +96,43 @@ def read_sf_gram():
     # exit()
     
     t_count = 0
+    wiki_count = 0
     for book in sf_dict:
-        if 'original_title' not in book.keys():
-            continue
-        title = book['title']
-        # if title is not None:
-        #     t_count = t_count + 1
+        if 'wikipedia' in book.keys():
+            wiki_count += 1
+            if 'found' in book["wikipedia"].keys():
+                if book["wikipedia"]["found"] is True:
+                    t_count += 1
+                    if 'original_title' in book.keys():
+                        title = book['original_title']
+                    else:
+                        title = book["title"]
 
-        if 'plot' in book.keys():
-            get_rank(book['plot'])
-            keywords = get_rank(book['plot'])
-            book["keywords"] = keywords
-        else:
-            plot = get_summary_wikipedia(title)
-            if plot is None:
-                # if unable to crawl for this book's plot, skip.
-                continue
-            keywords = get_rank(plot)
-            book["keywords"] = keywords
-    
-    # print('tcount',t_count)
+                    if 'plot' in book.keys():
+                        keywords = get_rank(book['plot'])
+                        book["keywords"] = keywords
+                    else:
+                        plot = get_summary_wikipedia(title)
+                        if plot is None:
+                            # if unable to crawl for this book's plot, skip.
+                            continue
+                        keywords = get_rank(plot)
+                        book["keywords"] = keywords
+        
+    print('tcount',t_count)
+    print('wikicount',wiki_count)
     count = 0
+    json_output = {}
     for book in sf_dict:
         if 'keywords' in book.keys():
             count = count + 1
-            # print(book["keywords"])
+            json_output[book["title"]] = " ".join(book["keywords"]) + '[SEP]' + book["title"]
+        
+
     
+    f = open("books_dataset.json","w+")
+    json.dump(json_output,f)
+
     print(count)
 
 if __name__ == '__main__':
