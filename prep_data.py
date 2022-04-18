@@ -116,9 +116,15 @@ def read_sf_gram():
                         if plot is None:
                             # if unable to crawl for this book's plot, skip.
                             continue
+                        book["plot"] = plot
                         keywords = get_rank(plot)
                         book["keywords"] = keywords
-        
+
+    SPECIAL_TOKENS  = { "bos_token": "<|BOS|>",
+                    "eos_token": "<|EOS|>",
+                    "unk_token": "<|UNK|>",                    
+                    "pad_token": "<|PAD|>",
+                    "sep_token": "<|SEP|>"}
     print('tcount',t_count)
     print('wikicount',wiki_count)
     count = 0
@@ -126,7 +132,7 @@ def read_sf_gram():
     for book in sf_dict:
         if 'keywords' in book.keys():
             count = count + 1
-            json_output[book["title"]] = " ".join(book["keywords"]) + '[SEP]' + book["title"]
+            json_output[book["title"]] = SPECIAL_TOKENS["bos_token"] + book["title"] + SPECIAL_TOKENS["sep_token"] + " ".join(book["keywords"]) + SPECIAL_TOKENS["sep_token"] + book["plot"] + SPECIAL_TOKENS["eos_token"]
         
 
     
