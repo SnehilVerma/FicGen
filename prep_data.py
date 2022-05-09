@@ -66,22 +66,35 @@ def get_rank(plot):
 
     # add PyTextRank to the spaCy pipeline
     nlp.add_pipe("textrank")
+    # nlp.add_pipe("positionrank")
     doc = nlp(plot)
 
     mid_doc = []
-    for noun in doc.noun_chunks:
-        mid_doc.append(noun.text)
+
+    exclusion_list = []
+    for token in doc:
+        if token.pos_ == 'PROPN':
+            exclusion_list.append(token.text)
+
+    # print(exclusion_list)
+
+    # for noun in doc.noun_chunks:
+    #     if noun.root.pos_ != "PROPN":
+    #         mid_doc.append(noun.root.text)
     
-    x = ' '.join(mid_doc)
-    doc = nlp(x)
-    
-    # examine the top-ranked phrases in the document
-    phrase_ranks = []
+    # top ranked phrases
     for phrase in doc._.phrases:
-        phrase_ranks.append(phrase.text)
+        pwords = phrase.text.split(' ')
+        for w in pwords:
+            if w in exclusion_list:
+                continue
+            if w not in mid_doc:
+                mid_doc.append(w)
+        # mid_doc.append(phrase.text)
+
     
-    # print(phrase_ranks[:10])
-    return phrase_ranks[:10]
+    # print(mid_doc)
+    return mid_doc[:20]
 
 
 
@@ -129,15 +142,21 @@ def read_sf_gram():
     print('wikicount',wiki_count)
     count = 0
     json_output = {}
+    json_dumput = {}
     for book in sf_dict:
         if 'keywords' in book.keys():
             count = count + 1
             json_output[book["title"]] = SPECIAL_TOKENS["bos_token"] + book["title"] + SPECIAL_TOKENS["sep_token"] + " ".join(book["keywords"]) + SPECIAL_TOKENS["sep_token"] + book["plot"] + SPECIAL_TOKENS["eos_token"]
+            json_dumput[book["title"]] = {"plot":book["plot"],"keywords":book["keywords"]}
         
 
     
     f = open("books_dataset.json","w+")
     json.dump(json_output,f)
+    f.close()
+
+    f = open("book_backtranslate.json","w+")
+    json.dump(json_dumput,f)
 
     print(count)
 
