@@ -14,6 +14,9 @@ for k,v in data.items():
 pp.pprint(sci_fi_set)
 f.close()
 f = open('pplm_wordset.txt','r+')
-json.dump(list(sci_fi_set),f)
+for word in sci_fi_set:
+    f.write(word)
+    f.write('\n')
 
+f.close()
 
